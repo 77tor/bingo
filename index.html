@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo-generator</title>
+    <link rel="icon" type="image/png" href="bingo_02.png">
+    <link rel="apple-touch-icon" href="bingo_02.png">
+    <style>
+        @font-face {
+            font-family: 'Skogstavskrift';
+            src: url('skogstavskrift.otf') format('opentype');
+            font-weight: normal; font-style: normal;
+        }
+        @font-face {
+            font-family: 'Trykkskrift';
+            src: url('trykkskrift.otf') format('opentype');
+            font-weight: normal; font-style: normal;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Andika&display=swap');
+
+        :root {
+            --sidebar-bg: #243447;
+            --accent-green: #27ae60;
+            --sidebar-text: #ffffff;
+            --main-bg: #f0f2f5;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; display: flex; height: 100vh; 
+            background-color: var(--main-bg);
+            overflow: hidden; 
+        }
+
+        .sidebar {
+            width: 350px; min-width: 350px; 
+            background-color: var(--sidebar-bg); color: var(--sidebar-text);
+            padding: 15px; box-sizing: border-box; 
+            display: flex; flex-direction: column;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.3); z-index: 10; 
+            overflow-y: auto;
+        }
+
+        .sidebar h2 { text-align: center; text-transform: uppercase; font-size: 1.1rem; margin-top: 0; margin-bottom: 15px; }
+
+        textarea { 
+            width: 100%; height: 120px; padding: 10px; border-radius: 6px; border: none; 
+            margin-bottom: 15px; background-color: #ecf0f1; resize: none; box-sizing: border-box;
+            font-family: inherit; font-size: 0.9rem; color: #333;
+        }
+
+        .control-item {
+            display: flex; align-items: center; justify-content: space-between;
+            background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 8px; 
+            margin-bottom: 8px; font-size: 0.9rem;
+        }
+
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { 
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; 
+            background-color: #ccc; transition: .4s; border-radius: 20px; 
+        }
+        .slider:before { 
+            position: absolute; content: ""; height: 14px; width: 14px; 
+            left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; 
+        }
+        input:checked + .slider { background-color: var(--accent-green); }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        select, input[type="number"] {
+            background: #ecf0f1; border: none; border-radius: 4px; padding: 4px; width: 120px;
+            font-family: inherit; font-size: 0.85rem; color: #333; box-sizing: border-box;
+        }
+        select:focus, input[type="number"]:focus { outline: none; }
+
+        .file-input-wrapper {
+            background: #ecf0f1; border-radius: 4px; padding: 4px; width: 120px; 
+            box-sizing: border-box; overflow: hidden;
+        }
+        .file-input-wrapper input[type="file"] {
+            width: 100%; font-size: 0.7rem; color: #333; cursor: pointer; border: none; background: transparent; padding: 0;
+        }
+
+        .action-btn { 
+            width: 100%; 
+            padding: 10px; 
+            border-radius: 8px; 
+            border: none; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-bottom: 8px; 
+            color: white; 
+            transition: 0.2s;
+            box-sizing: border-box; 
+            font-size: 0.85rem;
+            display: flex;         
+            align-items: center;   
+            justify-content: center; 
+        }
+        .action-btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        
+        #btn-generate { background-color: var(--accent-green); }
+        #btn-reset { background-color: #e74c3c; }
+        #btn-print { background-color: #3498db; }
+
+.main-content { 
+            flex-grow: 1; overflow-y: auto; display: flex; 
+            flex-direction: column; align-items: center; padding: 40px 20px; 
+            border: none; /* <-- Sørg for at det står none her, eller slett linjen helt */
+        }
+        
+#placeholder-image {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        #capture-area {
+            background: transparent !important; /* Gjør bakgrunnen usynlig */
+            border: none !important;             /* Fjerner eventuelle stiplede rammer */
+            box-shadow: none !important;         /* Fjerner skygganter */
+            width: 210mm; 
+            min-height: 296mm; 
+            padding: 1.5cm;
+            box-sizing: border-box;
+            display: none;                       /* Skjuler alt ved oppstart */
+        }
+
+        /* --- TEMA STYLING FOR BINGOBRETT --- */
+/* --- ALLE TEMASTILER (GAMLE + NYE) --- */
+        .bingo-brett { 
+            width: 100%; max-width: 700px; margin: 0 auto 60px auto; text-align: center; padding: 30px; box-sizing: border-box; border-radius: 20px; position: relative; background-color: #fff; border: 4px solid #333; transition: all 0.3s ease;
+        }
+
+        /* HØST */
+        .theme-host { background-color: #fffaf0; border: 6px double #d35400; }
+        .theme-host::before { content: "🍁 🍂 🍄 🍁"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-host .bingo-grid { border-color: #e67e22; background-color: #e67e22; }
+
+        /* VINTER */
+        .theme-vinter { background-color: #f4f9ff; border: 4px dashed #3498db; }
+        .theme-vinter::before { content: "❄️ ☃️ 🎿 ❄️"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-vinter .bingo-grid { border-color: #2980b9; background-color: #2980b9; }
+
+        /* VÅR / SOMMER */
+        .theme-var { background-color: #fafffa; border: 5px solid #2ecc71; }
+        .theme-var::before { content: "🌸 🦋 ☀️ 🐞"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-var .bingo-grid { border-color: #27ae60; background-color: #27ae60; }
+
+        /* VERDENSROMMET */
+        .theme-rommet { background-color: #f9f9fc; border: 5px solid #9b59b6; }
+        .theme-rommet::before { content: "🚀 🪐 ⭐️ 🛸"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-rommet .bingo-grid { border-color: #8e44ad; background-color: #8e44ad; }
+
+        /* FEST / BURSDAG */
+        .theme-fest { background-color: #fff9fe; border: 5px dotted #e91e63; }
+        .theme-fest::before { content: "🎈 🎉 🍰 🥳"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-fest .bingo-grid { border-color: #ff4081; background-color: #ff4081; }
+
+        /* 🎤 EUROVISION / ESC-TEMA (NY) */
+        .theme-esc { background-color: #fff9ff; border: 5px solid #ff007f; box-shadow: inset 0 0 15px rgba(233, 30, 99, 0.1); }
+        .theme-esc::before { content: "🎤 🌟 🇪🇺 🎶"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-esc .bingo-grid { border-color: #673ab7; background-color: #673ab7; }
+
+        /* 🎃 HALLOWEEN / GRØSS (NY) */
+        .theme-halloween { background-color: #fcf6f0; border: 5px solid #333; }
+        .theme-halloween::before { content: "🎃 👻 🕸️ 🦇"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-halloween .bingo-grid { border-color: #d35400; background-color: #333; }
+
+        /* 🎄 JUL / VINTERKOS (NY) */
+        .theme-jul { background-color: #fffbfb; border: 5px dashed #c0392b; }
+        .theme-jul::before { content: "🎄 🎁 🎅 🌟"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-jul .bingo-grid { border-color: #27ae60; background-color: #c0392b; }
+
+        /* 🦖 DINOSAURER (NY) */
+        .theme-dino { background-color: #fcfdf5; border: 5px solid #795548; }
+        .theme-dino::before { content: "🦖 🌋 🌴 🦕"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-dino .bingo-grid { border-color: #8d6e63; background-color: #5d4037; }
+
+        /* 🏴‍☠️ SJØRØVERE (NY) */
+        .theme-pirat { background-color: #fbfbfc; border: 6px double #34495e; }
+        .theme-pirat::before { content: "🏴‍☠️ ⚓️ ⚔️ 🦜"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-pirat .bingo-grid { border-color: #2c3e50; background-color: #34495e; }
+
+        /* ⚽️ SPORT / AKTIVITET (NY) */
+        .theme-sport { background-color: #f7fcf7; border: 5px solid #27ae60; }
+        .theme-sport::before { content: "⚽️ 🏆 🏃‍♂️ 🏅"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-sport .bingo-grid { border-color: #2ecc71; background-color: #27ae60; }
+
+        /* 🧬 MATTE / NATURFAG (NY) */
+        .theme-realfag { background-color: #fcfdfd; border: 4px solid #16a085; }
+        .theme-realfag::before { content: "🧬 📐 ➗ 🧪"; position: absolute; top: 15px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; letter-spacing: 10px; }
+        .theme-realfag .bingo-grid { border-color: #2980b9; background-color: #16a085; }
+
+        /* GRUNNLEGGENDE RUTENETT */
+        .bingo-grid {
+            display: grid; width: 100%; aspect-ratio: 1 / 1;
+            border: 5px solid #333; background-color: #333; gap: 5px; margin-top: 25px;
+        }
+
+        .bingo-cell {
+            background-color: white; display: flex; justify-content: center; align-items: center;
+            padding: 15px; box-sizing: border-box; word-break: break-word; overflow: hidden;
+            text-align: center; line-height: 1.2; position: relative; color: #000;
+        }
+
+        .free-space-image {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            max-width: 85%; max-height: 85%; object-fit: contain; display: block;
+        }
+
+/* HAMBURGER MENY-KNAPP */
+.menu-container {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+    width: 20px;
+    padding: 5px;
+}
+
+.hamburger span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: white;
+    border-radius: 1px;
+    transition: 0.3s;
+}
+
+/* SELVE MENYEN SOM KOMMER FREM */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 25px;
+    left: 0;
+    background-color: #2c3e50;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px;
+    width: 200px;
+    z-index: 100;
+    box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.menu-icon {
+    width: 20px;          /* Størrelsen på bildet */
+    height: 20px;
+    margin-right: 10px;   /* Avstand fra bilde til tekst */
+    vertical-align: middle; /* Sentrerer bildet i forhold til teksten */
+    object-fit: contain;  /* Sørger for at bildet ikke blir strukket */
+    border-radius: 3px;   /* Valgfritt: runder av hjørnene på bildene litt */
+}
+.dropdown-menu a {
+    display: block;
+    color: white;
+    padding: 12px 15px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.dropdown-menu a:hover {
+    background-color: #34495e;
+}
+
+.menu-item-disabled {
+    opacity: 0.4;            /* Gjør alt 60% gjennomsiktig */
+    filter: grayscale(100%); /* Gjør bildet helt grått */
+    pointer-events: none;    /* Gjør at man ikke kan klikke på lenken */
+    cursor: default;         /* Viser vanlig pil i stedet for pekefinger */
+}
+
+
+/* --- OPPDATERTE PRINT REGLER FOR SIKKER MARGIN --- */
+        @media print {
+            @page { 
+                /* Legger inn en trygg standardmargin (ca. 1 cm) som alle skrivere takler */
+                margin: 10mm !important; 
+                size: A4; 
+            }
+            body { 
+                background: white; 
+                overflow: visible !important; 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
+            .sidebar { display: none !important; }
+            .main-content { padding: 0 !important; margin: 0 !important; overflow: visible !important; display: block !important; }
+            
+            #capture-area { 
+                box-shadow: none !important; 
+                margin: 0 !important; 
+                width: 100% !important; 
+                padding: 0 !important; 
+                border: none !important; 
+                box-sizing: border-box !important; 
+            }
+            
+            .bingo-brett {
+                page-break-inside: avoid !important;
+                page-break-before: always !important; 
+                width: 100% !important;
+                /* Bruker min-height og trekker fra marginene så rammen holder seg trygt på én side */
+                min-height: calc(296mm - 20mm) !important; 
+                box-sizing: border-box !important;
+                margin: 0 auto !important;
+                /* Justerer luften innvendig slik at overskriften og emojier ikke blir kuttet */
+                padding-top: 2cm !important; 
+                padding-left: 1cm !important;
+                padding-right: 1cm !important;
+                border-radius: 0px !important; 
+            }
+            
+            .bingo-brett:first-child {
+                page-break-before: avoid !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <div class="sidebar-header" style="display: flex; align-items: center; margin-bottom: 20px;">
+        
+        <div class="menu-container" style="margin-bottom: 0; margin-right: 15px;">
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+    <div id="myDropdown" class="dropdown-menu">
+    <a href="https://77tor.github.io/gitter/" target="_self">
+        <img src="gitter_02.png" class="menu-icon"> Gitter-ord
+    </a>
+    <a href="https://77tor.github.io/ord-sok/" target="_self">
+        <img src="ord-sok.png" class="menu-icon"> Ordsøk
+    </a>
+    <a href="https://77tor.github.io/Silhuettord/" target="_self">
+        <img src="silhuett-ord_05.png" class="menu-icon"> Silhuett-ord
+    </a>
+    <a href="https://77tor.github.io/Stavelser/" target="_self">
+        <img src="stavelser_01.png" class="menu-icon"> Stavelser
+    </a>
+    <a href="https://77tor.github.io/Stavelser/" target="_self" class="menu-item-disabled">
+        <img src="bingo_02.png" class="menu-icon"> Bingo
+    </a>
+</div>
+        </div>
+
+        <h2 style="margin: 0; flex-grow: 1; text-align: center;">BINGO-GENERATOR</h2>
+    </div>
+
+        <textarea id="text-input" placeholder="Skriv ord/setninger (skilles med linjeskift eller komma)...&#10;Katt, Hund, Bil, Hus, Sol, Sykkel, Skole..."></textarea>
+
+        <div class="control-item">
+            <span>Egen overskrift:</span>
+            <input type="text" id="custom-title" placeholder="BINGO" oninput="updateLivePreview()" style="width: 120px;">
+        </div>
+
+        <div class="control-item">
+            <span>Størrelse på brett:</span>
+            <select id="select-grid" onchange="toggleFreeSpaceOption(); updateLivePreview()">
+                <option value="3">3 x 3</option>
+                <option value="4" selected>4 x 4</option>
+                <option value="5">5 x 5</option>
+            </select>
+        </div>
+
+        <div class="control-item">
+            <span>Antall unike brett:</span>
+            <select id="select-brett-antall" onchange="generateBingo(true)">
+                <option value="1">1 brett</option>
+                <option value="5">5 brett</option>
+                <option value="10" selected>10 brett</option>
+                <option value="15">15 brett</option>
+                <option value="20">20 brett</option>
+                <option value="25">25 brett</option>
+                <option value="30">30 brett</option>
+            </select>
+        </div>
+
+<div class="control-item">
+            <span>Tema / Design:</span>
+            <select id="select-theme" onchange="updateLivePreview()">
+                <option value="standard">Standard (Klassisk)</option>
+                <option value="host">🍁 Høst</option>
+                <option value="vinter">❄️ Vinter</option>
+                <option value="var">🌸 Vår / Sommer</option>
+                <option value="rommet">🚀 Verdensrommet</option>
+                <option value="fest">🎈 Fest / Bursdag</option>
+                <option value="esc">🎤 Eurovision / ESC</option>
+                <option value="halloween">🎃 Halloween</option>
+                <option value="jul">🎄 Jul</option>
+                <option value="dino">🦖 Dinosaurer</option>
+                <option value="pirat">🏴‍☠️ Sjørøvere</option>
+                <option value="sport">⚽️ Sport / Gym</option>
+                <option value="realfag">🧬 Realfag</option>
+            </select>
+        </div>
+
+        <div class="control-item">
+            <span>Font på brett:</span>
+            <select id="font-family" onchange="updateLivePreview()">
+                <option value="'Trykkskrift', sans-serif">Trykkskrift</option>
+                <option value="'Skogstavskrift', cursive">Skogstavskrift</option>
+                <option value="'Andika', sans-serif">Andika</option>
+                <option value="'Courier New', Courier, monospace">Monospace</option>
+                <option value="'Comic Sans MS', cursive">Comic Sans</option>
+                <option value="Arial, sans-serif">Arial</option>
+            </select>
+        </div>
+
+        <div class="control-item">
+            <span>Skriftstørrelse (px):</span>
+            <input type="number" id="font-size" value="18" min="10" max="60" onchange="updateLivePreview()">
+        </div>
+
+        <div class="control-item">
+            <span>STORE BOKSTAVER</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-upper" onchange="updateLivePreview()">
+                <div class="slider"></div>
+            </label>
+        </div>
+
+        <div class="control-item">
+            <span>Fet skrift</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-bold" onchange="updateLivePreview()">
+                <div class="slider"></div>
+            </label>
+        </div>
+
+        <div class="control-item" id="free-space-label" style="display: none;">
+            <span>Gratis midtfelt</span>
+            <label class="switch">
+                <input type="checkbox" id="toggle-free-space" checked onchange="toggleImageUploadInput()">
+                <div class="slider"></div>
+            </label>
+        </div>
+
+        <div class="control-group" id="image-upload-group" style="display: none;">
+            <div class="control-item">
+                <span>Bilde i midtfelt:</span>
+                <div class="file-input-wrapper">
+                    <input type="file" id="free-space-image-input" accept="image/*" onchange="handleImageUpload()">
+                </div>
+            </div>
+        </div>
+
+
+<div class="btn-group" style="display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch;">
+    <button class="action-btn btn-generate" onclick="generateBingo(true)" style="flex: 2; white-space: nowrap; background-color: #27ae60; margin-bottom: 0;">LAG BINGOBRETT</button>
+    <button class="action-btn" onclick="resetApp()" style="flex: 1; white-space: nowrap; background-color: #ff7675; color: white; margin-bottom: 0;">NULLSTILL</button>
+</div>
+
+<div class="btn-row" style="display: flex; gap: 10px;">
+    <button class="action-btn" style="flex: 1; background-color: #2980b9; color: white; margin-bottom: 0;" onclick="window.print()">SKRIV UT</button>
+    </div>
+
+    </div>
+
+</div> <div class="main-content">
+        <div id="placeholder-image" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 80vh; background: transparent !important;">
+            <img src="bingo_03.png" alt="Velkomstbilde" style="max-width: 400px; opacity: 0.15; filter: grayscale(100%); background: transparent !important; box-shadow: none !important;">
+        </div>
+
+    <div id="capture-area">
+        <div id="output-container"></div>
+    </div>
+</div>
+
+    <script>
+        let lagredeBrett = [];
+        let base64Bilde = "";
+
+        function toggleFreeSpaceOption() {
+            const gridSize = parseInt(document.getElementById('select-grid').value);
+            const label = document.getElementById('free-space-label');
+            
+            if (gridSize % 2 !== 0) {
+                label.style.display = "flex";
+            } else {
+                label.style.display = "none";
+            }
+            toggleImageUploadInput();
+        }
+
+        function toggleImageUploadInput() {
+            const gridSize = parseInt(document.getElementById('select-grid').value);
+            const medGratisFelt = document.getElementById('toggle-free-space').checked;
+            const uploadGroup = document.getElementById('image-upload-group');
+
+            if (gridSize % 2 !== 0 && medGratisFelt) {
+                uploadGroup.style.display = "block";
+            } else {
+                uploadGroup.style.display = "none";
+            }
+            updateLivePreview();
+        }
+
+        function updateLivePreview() {
+            if (lagredeBrett.length > 0) {
+                const gridSize = parseInt(document.getElementById('select-grid').value);
+                const ruterTotalt = gridSize * gridSize;
+                
+                if (lagredeBrett[0] && lagredeBrett[0].length !== ruterTotalt) {
+                    generateBingo(true);
+                } else {
+                    generateBingo(false);
+                }
+            }
+        }
+
+        function handleImageUpload() {
+            const fileInput = document.getElementById('free-space-image-input');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    base64Bilde = e.target.result;
+                    updateLivePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+function generateBingo(isManualClick = false) {
+            const input = document.getElementById('text-input').value.trim();
+            
+            // --- NY SJEKK: Stopper genereringen hvis feltet er tomt ---
+            if (input === "") {
+                alert("Vennligst skriv inn noen ord eller setninger i tekstfeltet først!");
+                return; // Avbryter funksjonen helt
+            }
+            // ---------------------------------------------------------
+            const placeholder = document.getElementById('placeholder-image');
+            const area = document.getElementById('capture-area');
+            const outputContainer = document.getElementById('output-container');
+
+            const gridSize = parseInt(document.getElementById('select-grid').value);
+            const antallBrett = parseInt(document.getElementById('select-brett-antall').value);
+            const temaKlasse = document.getElementById('select-theme').value;
+            const ruterTotalt = gridSize * gridSize;
+
+            let ordListe = [];
+            if (input !== "") {
+                ordListe = input.split(/[\n,]+/).map(w => w.trim()).filter(w => w.length > 0);
+            }
+
+            // SIKKER LOGIKK FOR Å UNNGÅ AT ORD FORSVINNER PÅ GRUNN AV GRATIS RUTE
+            const medGratisFelt = document.getElementById('toggle-free-space').checked;
+            const erOddetall = gridSize % 2 !== 0;
+            
+            // Hvis vi skal ha gratis midtfelt, trenger vi ett ord mindre enn totalt antall ruter
+            const antallOrdSomTrengs = (medGratisFelt && erOddetall) ? (ruterTotalt - 1) : ruterTotalt;
+
+            if (ordListe.length === 0) {
+                ordListe = ["Ape", "Bjørn", "Cobra", "Dino", "Elefant", "Frosk", "Gaupe", "Hest", "Iis", "Jerv", "Katt", "Løve", "Mus", "Nesehorn", "Oter", "Panda", "Ulv", "Rev", "Sjiraff", "Tiger", "Ugle", "Vaskebjørn", "Sebra", "Yak", "Ørn"];
+            }
+
+            // Fyller på med fyll-ord HVIS læreren har skrevet inn for få ord i boksen
+            const fyllOrd = (temaKlasse === "esc") ? "ESC 🎤" : "BINGO! 🎉";
+            
+            while (ordListe.length < antallOrdSomTrengs) {
+                ordListe.push(fyllOrd);
+            }
+
+            // Kutter listen nøyaktig der den skal for å gi plass til gratis-ruta
+            let listeTilStokking = ordListe.slice(0, antallOrdSomTrengs);
+
+            placeholder.style.display = "none";
+            area.style.display = "block";
+
+            if (isManualClick) {
+                lagredeBrett = [];
+                for (let b = 0; b < antallBrett; b++) {
+                    let stokketListe = [...listeTilStokking];
+                    
+                    for (let i = stokketListe.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [stokketListe[i], stokketListe[j]] = [stokketListe[j], stokketListe[i]];
+                    }
+                    
+                    lagredeBrett.push(stokketListe);
+                }
+            }
+
+let html = "";
+            const isUpper = document.getElementById('toggle-upper').checked;
+            
+            // Henter den egne overskriften, eller bruker "BINGO" som standard hvis feltet er tomt
+            let overskrift = document.getElementById('custom-title').value.trim();
+            if (overskrift === "") {
+                overskrift = "BINGO";
+            } else if (isUpper) {
+                overskrift = overskrift.toUpperCase();
+            }
+
+            const midtersteIndeks = erOddetall ? (ruterTotalt - 1) / 2 : -1;
+
+            lagredeBrett.forEach((brettOrd, brettIndeks) => {
+                html += `
+                    <div class="bingo-brett theme-${temaKlasse}">
+                        <h1 style="margin-top: 15px; margin-bottom: 5px; font-family: sans-serif; letter-spacing: 8px; font-size: 3rem;">${overskrift}</h1>
+                        <p style="margin-bottom: 15px; font-style: italic; font-size: 0.9rem; color: #7f8c8d; font-family: sans-serif;">Unikt brett nr. ${brettIndeks + 1}</p>
+                        <div class="bingo-grid" style="grid-template-columns: repeat(${gridSize}, 1fr);">
+                `;
+
+                // UTTEGNING AV RUTENE
+                let ordTeller = 0;
+                for (let celleIndeks = 0; celleIndeks < ruterTotalt; celleIndeks++) {
+                    let celleInnhold = "";
+
+                    if (medGratisFelt && celleIndeks === midtersteIndeks) {
+                        if (base64Bilde !== "") {
+                            celleInnhold = `<img src="${base64Bilde}" class="free-space-image" alt="Fri rute">`;
+                        } else {
+                            celleInnhold = isUpper ? "GRATIS" : "Gratis rute";
+                        }
+                    } else {
+                        let ord = brettOrd[ordTeller] || "";
+                        celleInnhold = isUpper ? ord.toUpperCase() : ord;
+                        ordTeller++;
+                    }
+
+                    if (celleInnhold === "") celleInnhold = "&nbsp;";
+
+                    html += `<div class="bingo-cell">${celleInnhold}</div>`;
+                }
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+
+            outputContainer.innerHTML = html;
+
+            const fontFamily = document.getElementById('font-family').value;
+            const fontSize = document.getElementById('font-size').value;
+            const isBold = document.getElementById('toggle-bold').checked;
+
+            outputContainer.style.fontSize = fontSize + "px";
+            outputContainer.style.fontWeight = isBold ? "bold" : "normal";
+            area.style.fontFamily = fontFamily;
+        }
+
+function toggleMenu() {
+    document.getElementById("myDropdown").classList.toggle("show");
+}
+
+// Lukker menyen hvis man klikker utenfor den
+window.addEventListener('click', function(event) {
+    if (!event.target.closest('.menu-container')) {
+        var dropdowns = document.getElementsByClassName("dropdown-menu");
+        for (var i = 0; i < dropdowns.length; i++) {
+            var openDropdown = dropdowns[i];
+            if (openDropdown.classList.contains('show')) {
+                openDropdown.classList.remove('show');
+            }
+        }
+    }
+});
+
+function resetApp() {
+            // --- NY SJEKK: Spør om brukeren er sikker før alt slettes ---
+            const bekreft = confirm("Er du sikker på at du vil nullstille? Alle innlagte ord og genererte brett vil bli slettet.");
+            if (!bekreft) {
+                return; // Avbryter funksjonen hvis de trykker "Avbryt"
+            }
+            // -----------------------------------------------------------
+
+            document.getElementById('text-input').value = "";
+            document.getElementById('custom-title').value = ""; // Tar med denne så overskriften også tømmes!
+            document.getElementById('free-space-image-input').value = "";
+            base64Bilde = "";
+            document.getElementById('toggle-upper').checked = false;
+            document.getElementById('toggle-bold').checked = false;
+            document.getElementById('toggle-free-space').checked = true;
+            document.getElementById('select-grid').value = "4";
+            document.getElementById('select-brett-antall').value = "10";
+            document.getElementById('select-theme').value = "standard";
+            document.getElementById('font-family').value = "'Trykkskrift', sans-serif";
+            document.getElementById('font-size').value = "18";
+            
+            // Viser velkomstbildet og skjuler hele utskriftsområdet (inkludert stiplede linjer)
+            document.getElementById('placeholder-image').style.display = "flex";
+            document.getElementById('capture-area').style.display = "none";
+            
+            document.getElementById('output-container').innerHTML = "";
+            lagredeBrett = [];
+            toggleFreeSpaceOption();
+        }
+
+        toggleFreeSpaceOption();
+    </script>
+</body>
+</html>
