@@ -4,19 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bingo-generator</title>
-    <link rel="icon" type="image/png" href="bingo_02.png">
-    <link rel="apple-touch-icon" href="bingo_02.png">
+    <link rel="icon" type="image/png" href="ikon/bingo.png">
+    <link rel="apple-touch-icon" href="ikon/bingo.png">
     <style>
-        @font-face {
-            font-family: 'Skogstavskrift';
-            src: url('skogstavskrift.otf') format('opentype');
-            font-weight: normal; font-style: normal;
-        }
-        @font-face {
-            font-family: 'Trykkskrift';
-            src: url('trykkskrift.otf') format('opentype');
-            font-weight: normal; font-style: normal;
-        }
+        @font-face { font-family: 'Stavskrift'; src: url('skrift/stavskrift.otf') format('opentype'); font-weight: normal; font-style: normal; }
+        @font-face { font-family: 'Trykkskrift'; src: url('skrift/trykkskrift.otf') format('opentype'); font-weight: normal; font-style: normal; }
         @import url('https://fonts.googleapis.com/css2?family=Andika&display=swap');
 
         :root {
@@ -342,32 +334,36 @@
             </div>
     <div id="myDropdown" class="dropdown-menu">
 
+                </a>
                 <a href="https://77tor.github.io/bingo/" class="menu-item-disabled">
-                    <img src="bingo_02.png" class="menu-icon" alt="Bingo"> Bingo
+                    <img src="ikon/bingo.png" class="menu-icon" alt="Bingo"> Bingo
                 </a>
                 <a href="https://77tor.github.io/finn_ordet/" target="_self">
-                    <img src="finn_ordet_01.svg" class="menu-icon" alt="Finn ordet"> Finn ordet
+                    <img src="ikon/finn_ordet.svg" class="menu-icon" alt="Finn ordet"> Finn ordet
                 </a>
                 <a href="https://77tor.github.io/gitter/" target="_self">
-                    <img src="gitter_02.png" class="menu-icon" alt="Gitter-ord"> Gitter-ord
+                    <img src="ikon/gitter.png" class="menu-icon" alt="Gitter-ord"> Gitter-ord
                 </a>
                 <a href="https://77tor.github.io/les_og_skriv/" target="_self">
-                    <img src="les_skriv.png" class="menu-icon" alt="Les og skriv"> Les og skriv
+                    <img src="ikon/les_skriv.png" class="menu-icon" alt="Les og skriv"> Les og skriv
                 </a>
                 <a href="https://77tor.github.io/ord-sok/" target="_self"> 
-                    <img src="ord-sok.png" class="menu-icon" alt="Ordsøk"> Ordsøk
+                    <img src="ikon/ord-sok.png" class="menu-icon" alt="Ordsøk"> Ordsøk
+                </a>
+                <a href="https://77tor.github.io/ordkjeder/" target="_self"> 
+                    <img src="ikon/ordkjeder.png" class="menu-icon" alt="Ordkjeder"> Ordkjeder
                 </a>
                 <a href="https://77tor.github.io/puslehistorier/" target="_self">
-                    <img src="pusle_02.png" class="menu-icon" alt="Puslehistorier"> Puslehistorier
+                    <img src="ikon/pusle.png" class="menu-icon" alt="Puslehistorier"> Puslehistorier
                 </a>
                 <a href="https://77tor.github.io/Silhuettord/" target="_self">
-                    <img src="silhuett-ord_05.png" class="menu-icon" alt="Silhuett-ord"> Silhuett-ord
+                    <img src="ikon/silhuett-ord.png" class="menu-icon" alt="Silhuett-ord"> Silhuett-ord
                 </a>
                 <a href="https://77tor.github.io/Stavelser/" target="_self">
-                    <img src="stavelser_01.png" class="menu-icon" alt="Stavelser"> Stavelser
+                    <img src="ikon/stavelser.png" class="menu-icon" alt="Stavelser"> Stavelser
                 </a>
                 <a href="https://77tor.github.io/synonymer/" target="_self">
-                    <img src="synonym.png" class="menu-icon" alt="Synonymer"> Synonymer
+                    <img src="ikon/synonym.png" class="menu-icon" alt="Synonymer"> Synonymer
                 </a>
 </div>
         </div>
@@ -427,7 +423,7 @@
             <span>Font på brett:</span>
             <select id="font-family" onchange="updateLivePreview()">
                 <option value="'Trykkskrift', sans-serif">Trykkskrift</option>
-                <option value="'Skogstavskrift', cursive">Skogstavskrift</option>
+                <option value="'Stavskrift', cursive">Stavskrift</option>
                 <option value="'Andika', sans-serif">Andika</option>
                 <option value="'Courier New', Courier, monospace">Monospace</option>
                 <option value="'Comic Sans MS', cursive">Comic Sans</option>
@@ -482,7 +478,7 @@
 </div> 
 <div class="main-content">
         <div id="placeholder-image" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 80vh; background: transparent !important;">
-            <img src="bingo_03.png" alt="Velkomstbilde" style="max-width: 400px; opacity: 0.15; filter: grayscale(100%); background: transparent !important; box-shadow: none !important;">
+            <img src="bingo_velkommen.png" alt="Velkomstbilde" style="max-width: 400px; opacity: 0.15; filter: grayscale(100%); background: transparent !important; box-shadow: none !important;">
         </div>
 
     <div id="capture-area">
